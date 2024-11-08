@@ -47,7 +47,17 @@ export default {
         if (response.status === 200 && response.data.success) {
           this.error = '';
           localStorage.setItem("isAuthenticated", "true"); // Guarda el estado de autenticación
-          this.$router.push('/pagina'); // Redirigir a la vista PaginaView.vue
+          localStorage.setItem("userId", response.data.userId); // Guarda el userId en localStorage
+          
+          // Guarda el rol en localStorage y redirige a la página correspondiente
+          const rol = response.data.rol;
+          if (rol === 2) {
+            localStorage.setItem("userRole", "admin");
+            this.$router.push({ name: 'PaginaAdminView' }); // Redirigir a la vista de administrador
+          } else if (rol === 1) {
+            localStorage.setItem("userRole", "user");
+            this.$router.push({ name: 'PaginaUsuarioView' }); // Redirigir a la vista de usuario
+          }
         } else {
           this.error = 'Correo o contraseña incorrectos';
         }

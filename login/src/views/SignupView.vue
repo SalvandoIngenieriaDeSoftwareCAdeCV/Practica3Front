@@ -47,8 +47,8 @@ export default {
       // Crear el objeto con los datos a enviar
       const data = {
         nombre: this.nombre,
-        apellidoPaterno: this.aPaterno || null, // No es obligatorio
-        apellidoMaterno: this.aMaterno || null, // No es obligatorio
+        apellidoPaterno: this.aPaterno || null,
+        apellidoMaterno: this.aMaterno || null,
         correo: this.email,
         contrasena: this.password
       };
