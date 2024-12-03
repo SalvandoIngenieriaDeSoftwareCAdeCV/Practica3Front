@@ -13,6 +13,8 @@
         <input type="text" class="form-control" v-model="email" placeholder="Correo Electrónico" required />
         <br><h6>Contraseña*</h6>
         <input type="password" class="form-control" v-model="password" placeholder="Contraseña" required />
+        <br><h6>Seleccionar Imagen*</h6> 
+        <input type="file" @change="onFileChange" accept="image/*" class="form-control" />
         <button class="btn btn-lg btn-primary btn-block" type="submit">Registrarse</button>
         <p v-if="error" class="text-danger">{{ error }}</p>
         <p v-if="success" class="text-success">{{ success }}</p>
@@ -32,11 +34,19 @@ export default {
       aMaterno: '',
       email: '',
       password: '',
+      imagen: '',
       error: '', // Para mostrar errores
       success: '' // Para mostrar éxito
     }
   },
   methods: {
+    onFileChange(event){
+        const file = event.target.files[0];
+        if(file){
+          this.imagen = file;
+        }
+      },
+    
     async signup() {
       // Validar que los campos obligatorios estén completos
       if (!this.nombre || !this.email || !this.password) {
@@ -44,16 +54,18 @@ export default {
         return;
       }
 
-      // Crear el objeto con los datos a enviar
-      const data = {
-        nombre: this.nombre,
-        apellidoPaterno: this.aPaterno || null,
-        apellidoMaterno: this.aMaterno || null,
-        correo: this.email,
-        contrasena: this.password
-      };
+      
 
-      try {
+      // Crear el objeto con los datos a enviar
+      const data = new FormData(); 
+      data.append('nombre', this.nombre); 
+      data.append('apellidoPaterno', this.aPaterno || null); 
+      data.append('apellidoMaterno', this.aMaterno || null); 
+      data.append('correo', this.email); 
+      data.append('contrasena', this.password); 
+      data.append('imagen', this.imagen);
+
+      try {   
         // Enviar los datos al backend usando axios
         const response = await axios.post('http://localhost:8080/cliente/saveUser', data);
         
