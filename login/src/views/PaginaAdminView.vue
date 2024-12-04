@@ -113,7 +113,9 @@ export default {
             editUser: {}, // Objeto para almacenar datos del usuario en edición
             nimagen: '',
             vcorreo: '',
+            vcontra: '',
             userData: '',
+            mod: 0,
             showModal: false,
             showDeleteModal: false,
             showEditModal: false, // Controla la visibilidad del modal de edición
@@ -126,6 +128,14 @@ export default {
                 { name: 'contrasena', model: 'contrasena', placeholder: 'Contraseña', type: 'password', required: true }
             ]
         };
+    },
+    watch: { 
+        'editUser.contrasena'(newVal, oldVal) { 
+            if (newVal !== this.originalContrasena) { 
+                console.log('La contraseña ha sido modificada'); 
+                this.mod = 1; 
+            }
+        }
     },
     async created() {
         this.fetchUsers();
@@ -201,6 +211,7 @@ export default {
         openEditModal(user) {
             this.editUser = { ...user }; // Copia los datos del usuario a editar
             this.vcorreo = this.editUser.correo;
+            this.vcontra = this.editUser.contrasena;
             this.showEditModal = true;
 
         },
@@ -220,14 +231,22 @@ export default {
                 }else{
                     dataN.append('imagen', this.editUser.imagen);
                 }
+
+                if(this.vcontra != this.editUser.contrasena){
+                    this.mod = 1;
+                }else{
+                    this.mod = 0;
+                }
                 // Utiliza el correo del usuario para hacer la solicitud de actualización
                 await axios.put(`http://localhost:8080/cliente/updateUserByEmail`, dataN, {
                     headers:{
-                        "modo": 1
+                        "modo": 1,
+                        "mod": this.mod
                     }
                 });
                 /*alert('Usuario modificado exitosamente');
                 this.fetchUsers();*/
+                this.mod = 0;
                 this.nimagen = '';
                 this.closeEditModal();
             } catch (error) {

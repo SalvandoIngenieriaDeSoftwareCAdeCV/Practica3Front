@@ -103,7 +103,8 @@ export default {
               // Utiliza el correo del usuario para hacer la solicitud de actualización
               await axios.put(`http://localhost:8080/cliente/updateUserByEmail`, dataN, {
                 headers: {
-                  'modo': 0
+                  'modo': 0,
+                  'mod': 0
                 }
               });
               
@@ -111,6 +112,7 @@ export default {
               this.error = '';
               await new Promise(resolve => setTimeout(resolve, 2000));
               this.showModal = false;
+              this.success = '';
               const userId = localStorage.getItem("userId"); // Obtener el ID del usuario desde localStorage
               const response = await axios.get(`http://localhost:8080/cliente/getUserData/${userId}`);
               this.userData = response.data;
