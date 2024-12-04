@@ -10,6 +10,7 @@
                         <th>Apellido Paterno</th>
                         <th>Apellido Materno</th>
                         <th>Correo</th>
+                        <th>Imagen</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -19,6 +20,10 @@
                         <td>{{ user.apellidoPaterno }}</td>
                         <td>{{ user.apellidoMaterno }}</td>
                         <td>{{ user.correo }}</td>
+                        <td>
+                            <img :src="`data:image/jpeg;base64,${user.imagen}`" alt="Imagen de usuario" v-if="user.imagen" class="user-image"/>
+                            <img src="@/assets/usuario.jpg" alt="Imagen predeterminada"  v-else class="user-image"/>
+                        </td>
                         <td>
                             <button @click="confirmDelete(user.correo)" class="button button-primary">Eliminar</button>
                             <button @click="openEditModal(user)" class="button button-secondary">Modificar</button>
@@ -53,6 +58,7 @@
                                 :required="field.required" 
                             />
                         </div>
+                        <input type="file" @change="onFileChange" accept="image/*" class="form-control" />
                         <div class="form-group">
                             <select v-model="newUser.rol" required>
                                 <option value="1">Usuario</option>
@@ -78,6 +84,7 @@
                                 :required="field.required" 
                             />
                         </div>
+                        <input type="file" @change="onFileChange" accept="image/*" class="form-control" />
                         <div class="form-group">
                             <select v-model="editUser.rol" required>
                                 <option value="1">Usuario</option>
@@ -104,6 +111,9 @@ export default {
             users: [],
             newUser: this.getNewUserTemplate(),
             editUser: {}, // Objeto para almacenar datos del usuario en edición
+            nimagen: '',
+            vcorreo: '',
+            userData: '',
             showModal: false,
             showDeleteModal: false,
             showEditModal: false, // Controla la visibilidad del modal de edición
@@ -121,6 +131,12 @@ export default {
         this.fetchUsers();
     },
     methods: {
+        onFileChange(event){
+        const file = event.target.files[0];
+        if(file){
+          this.nimagen = file;
+        }
+      },
         getNewUserTemplate() {
             return {
                 nombre: '',
@@ -140,8 +156,19 @@ export default {
             }
         },
         async registerUser() {
+            const dataN = new FormData();
+            
             try {
-                await axios.post('http://localhost:8080/cliente/saveUser', this.newUser);
+
+                dataN.append('nombre', this.newUser.nombre);
+                dataN.append('apellidoPaterno', this.newUser.apellidoPaterno);
+                dataN.append('apellidoMaterno', this.newUser.apellidoMaterno);
+                dataN.append('correo', this.newUser.correo);
+                dataN.append('contrasena', this.newUser.contrasena);
+                if(this.nimagen != null){
+                    dataN.append('imagen', this.nimagen);
+                }
+                await axios.post('http://localhost:8080/cliente/saveUser', dataN);
                 alert('Usuario registrado exitosamente');
                 this.newUser = this.getNewUserTemplate();
                 this.fetchUsers();
@@ -173,14 +200,35 @@ export default {
         },
         openEditModal(user) {
             this.editUser = { ...user }; // Copia los datos del usuario a editar
+            this.vcorreo = this.editUser.correo;
             this.showEditModal = true;
+
         },
         async updateUser() {
+            const dataN = new FormData();
+            dataN.append('correon', this.editUser.correo);
             try {
+                
+                dataN.append('correo', this.vcorreo);
+                dataN.append('nombre', this.editUser.nombre);
+                dataN.append('apellidoPaterno', this.editUser.apellidoPaterno);
+                dataN.append('apellidoMaterno', this.editUser.apellidoMaterno);
+                dataN.append('contrasena', this.editUser.contrasena);
+                dataN.append('rol', this.editUser.rol);
+                if(this.nimagen){
+                    dataN.append('imagen', this.nimagen);
+                }else{
+                    dataN.append('imagen', this.editUser.imagen);
+                }
                 // Utiliza el correo del usuario para hacer la solicitud de actualización
-                await axios.put(`http://localhost:8080/cliente/updateUserByEmail`, this.editUser);
-                alert('Usuario modificado exitosamente');
-                this.fetchUsers();
+                await axios.put(`http://localhost:8080/cliente/updateUserByEmail`, dataN, {
+                    headers:{
+                        "modo": 1
+                    }
+                });
+                /*alert('Usuario modificado exitosamente');
+                this.fetchUsers();*/
+                this.nimagen = '';
                 this.closeEditModal();
             } catch (error) {
                 console.error('Error al modificar el usuario:', error);
@@ -346,5 +394,10 @@ export default {
     border: 1px solid #cccccc;
     border-radius: 5px;
     font-size: 14px;
+}
+.user-image{
+  width: 100px;
+  height: auto;
+  border-radius: 10px;
 }
 </style>
