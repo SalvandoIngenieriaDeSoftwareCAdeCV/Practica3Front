@@ -103,7 +103,8 @@ export default {
               // Utiliza el correo del usuario para hacer la solicitud de actualización
               await axios.put(`http://localhost:8080/cliente/updateUserByEmail`, dataN, {
                 headers: {
-                  'modo': 0
+                  'modo': 0,
+                  'mod': 0
                 }
               });
               
