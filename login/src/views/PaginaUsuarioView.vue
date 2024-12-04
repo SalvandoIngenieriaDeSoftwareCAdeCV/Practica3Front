@@ -111,6 +111,7 @@ export default {
               this.error = '';
               await new Promise(resolve => setTimeout(resolve, 2000));
               this.showModal = false;
+              this.success = '';
               const userId = localStorage.getItem("userId"); // Obtener el ID del usuario desde localStorage
               const response = await axios.get(`http://localhost:8080/cliente/getUserData/${userId}`);
               this.userData = response.data;
