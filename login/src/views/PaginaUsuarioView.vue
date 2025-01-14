@@ -32,6 +32,8 @@
           </table>
           <p v-else>Cargando datos...</p>
           <button @click="logout" class="logout-button">Cerrar Sesión</button>
+          <button @click="mostrarRecomendacionesL" class="logout-button">Recomendaciones de Libros</button>
+          <button @click="mostrarRecomendacionesP" class="logout-button">Recomendaciones de Peliculas</button>
       </div>
       <div v-if="showModal" class="modal-overlay">
               <div class="modal-content">
@@ -52,8 +54,68 @@
                   <p v-if="error" class="text-danger">{{ error }}</p>
                   <p v-if="success" class="text-success">{{ success }}</p>
               </div>
-          </div>
+      </div>
+
+      <div v-if="showModal2" class="modal-overlay">
+              <div class="modal-content">
+                  <h2 class="form-title">Recomendaciones</h2>
+                  <div class = "table-container">
+                    <table class="table2"> 
+                    <thead> 
+                      <tr> 
+                        <th>Título</th> 
+                        <th>Autor</th>
+                        <th>Portada</th>
+                      </tr> 
+                    </thead> 
+                    <tbody> 
+                      <tr v-for="book in randomBooks" :key="book.key"> 
+                        <td>{{ book.title }}</td> 
+                        <td>{{ book.authors[0].name }}</td> 
+                        <td>
+                          <img :src="obtenerPortada(book)" :alt="book.title" v-if="obtenerPortada(book)"/>
+                          <span v-else>No hay portada disponible</span>
+                        </td>
+                      </tr> 
+                    </tbody> 
+                  </table>
+                  </div>
+                  <button @click="closeRecomendacionModalL" class="button button-secondary">Cerrar</button>
+                  <p v-if="error" class="text-danger">{{ error }}</p>
+                  <p v-if="success" class="text-success">{{ success }}</p>
+              </div>
+      </div>
+      <div v-if="showModal3" class="modal-overlay">
+              <div class="modal-content">
+                  <h2 class="form-title">Recomendaciones</h2>
+                  <div class = "table-container">
+                    <table class="table2"> 
+                    <thead> 
+                      <tr> 
+                        <th>Nombre</th> 
+                        <th>Generos</th>
+                        <th>Portada</th>
+                      </tr> 
+                    </thead> 
+                    <tbody> 
+                      <tr v-for="programa in randomProgramas" :id="programa.id"> 
+                        <td>{{ programa.show.name }}</td> 
+                        <td>{{ programa.show.genres }}</td> 
+                        <td>
+                          <img :src="programa.show.image.medium" :alt="programa.name" v-if="programa.show.image"/>
+                          <span v-else>No hay Imagen disponible</span>
+                        </td>
+                      </tr> 
+                    </tbody> 
+                  </table>
+                  </div>
+                  <button @click="closeRecomendacionModalP" class="button button-secondary">Cerrar</button>
+                  <p v-if="error" class="text-danger">{{ error }}</p>
+                  <p v-if="success" class="text-success">{{ success }}</p>
+              </div>
+      </div>
   </div>
+    
 </template>
 
 <script>
@@ -65,8 +127,14 @@ export default {
           userData: null,
           nimagen: '',
           showModal: false,
+          showModal2: false,
+          showModal3: false,
           error: '',
-          success: ''
+          success: '',
+          books: [],
+          randomBooks: [],
+          programas: [],
+          randomProgramas: [],
       };
   },
   async created() {
@@ -105,7 +173,8 @@ export default {
                 headers: {
                   'modo': 0,
                   'mod': 0
-                }
+                },
+                timeout: 60000
               });
               
               this.success = 'Usuario modificado exitosamente';
@@ -121,8 +190,42 @@ export default {
               this.success = '';
           }
       },
+      async presentarRecomendacionesL(){
+        try{
+          const response = await axios.get('https://openlibrary.org/subjects/science_fiction.json?limit=50');
+          this.books = response.data.works;
+          this.randomBooks = this.getRandomBooks();
+        }catch(error){
+          console.error('Error al obtener los libros', error);
+        }
+      },
+      async presentarRecomendacionesP(){
+        try{
+          const response = await axios.get('https://api.tvmaze.com/schedule?date=2025-01-14');
+          this.programas = response.data;
+          this.randomProgramas = this.getRandomProgramas();
+          console.log(this.programas);
+        }catch(error){
+          console.error('Error al obtener los programas', error);
+        }
+      },
+      getRandomBooks(){
+        const shuffled = this.books.sort(() => 0.5 - Math.random());
+        console.log(this.books);
+        return shuffled.slice(0, 10);
+      }, 
+      getRandomProgramas(){
+        const shuffled = this.programas.sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, 10);
+      },  
      closeEditModal(){
       this.showModal = false;
+     },
+     closeRecomendacionModalL(){
+      this.showModal2 = false;
+     },
+     closeRecomendacionModalP(){
+      this.showModal3 = false;
      },
      openEditModal(user) {
           this.editUser = { ...user }; // Copia los datos del usuario a editar
@@ -133,7 +236,25 @@ export default {
           localStorage.removeItem("userRole");
           localStorage.removeItem("userId");
           this.$router.push('/');
-      }
+      },
+      mostrarRecomendacionesL(){
+        this.showModal2 = true;
+        this.presentarRecomendacionesL();
+      },
+      mostrarRecomendacionesP(){
+        this.showModal3 = true;
+        this.presentarRecomendacionesP();
+      },
+      obtenerPortada(book){
+          return `https://covers.openlibrary.org/b/id/${book.cover_id}-M.jpg`;
+      },
+      obtenerImagen(programa){
+        if(programa.show.image.medium != null){
+          return "programa.show.image.medium";
+        }else{
+          return '';
+        }
+      },
   }
 }
 </script>
@@ -245,8 +366,9 @@ border-radius: 10px;
   padding: 20px;
   border-radius: 10px;
   width: 90%;
-  max-width: 500px;
+  max-width: 1000px;
   text-align: center;
+  align-items: center;
 }
 
 .form-title {
@@ -267,6 +389,12 @@ border-radius: 10px;
   border-radius: 5px;
   font-size: 14px;
 }
+.table-container { 
+  max-height: 400px; 
+  /* Ajusta esta altura según tus necesidades */ 
+  overflow-y: auto; 
+}
+
 .text-danger {
   color: red;
 }
@@ -274,4 +402,17 @@ border-radius: 10px;
 .text-success {
 color: green;
 }
+
+.table2 { 
+  width: 100%; 
+  border-collapse: collapse; 
+} 
+th, td { 
+  border: 1px solid #dddddd; 
+  padding: 8px; 
+} 
+th { 
+  text-align: center; 
+}
+
 </style>
