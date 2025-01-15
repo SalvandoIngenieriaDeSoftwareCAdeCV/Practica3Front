@@ -67,7 +67,9 @@ export default {
 
       try {   
         // Enviar los datos al backend usando axios
-        const response = await axios.post('http://localhost:8080/cliente/saveUser', data);
+        const response = await axios.post('http://localhost:8080/cliente/saveUser', data,{
+          timeout: 60000
+        });
         
         // Verificar si la respuesta es un 200 (OK)
         if (response.status === 200) {
